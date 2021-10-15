@@ -3,7 +3,7 @@ sepsis_diag AS (
     SELECT DISTINCT 
     SUBJECT_ID
     FROM `physionet-data.mimiciii_clinical.diagnoses_icd`
-    WHERE ICD9_CODE IN ('99591', '99592')
+    WHERE ICD9_CODE IN ('99591', '99592', '78552')
 ),
 
 nonsepsis_pat AS(
