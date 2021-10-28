@@ -1,12 +1,3 @@
--- BigQuery version of https://github.com/alistairewj/sepsis3-mimic/blob/master/query/tbls/cohort.sql
-
--- This table requires:
---  abx_poe_list
---  abx_micro_poe
---  suspinfect_poe
-
--- DROP TABLE IF EXISTS sepsis3_cohort CASCADE;
--- CREATE TABLE sepsis3_cohort AS
 with serv as
 (
     select hadm_id, curr_service
@@ -17,7 +8,7 @@ with serv as
 (
 select ie.icustay_id, ie.hadm_id
     , ie.intime, ie.outtime
-    , DATE_DIFF(adm.admittime, pat.dob, YEAR) as age
+    , ROUND(DATE_DIFF(adm.admittime, pat.dob, DAY)/365.242, 4) as age
     , pat.gender
     , adm.ethnicity
     , ie.dbsource
@@ -32,8 +23,8 @@ select ie.icustay_id, ie.hadm_id
     , case when spoe.suspected_infection_time is not null then 1 else 0 end
         as suspected_of_infection_poe
     , spoe.suspected_infection_time as suspected_infection_time_poe
-    , DATE_DIFF(ie.intime, spoe.suspected_infection_time, DAY) --extract(EPOCH from ie.intime - spoe.suspected_infection_time) / 60.0 / 60.0 / 24.0 
-      as suspected_infection_time_poe_days
+    , DATETIME_DIFF(ie.intime, spoe.suspected_infection_time, SECOND)
+           / 60.0 / 60.0 / 24.0 as suspected_infection_time_poe_days
     , spoe.specimen as specimen_poe
     , spoe.positiveculture as positiveculture_poe
     , spoe.antibiotic_time as antibiotic_time_poe
@@ -70,7 +61,7 @@ select
 
   -- exclusions
   , case when t1.rn = 1 then 0 else 1 end as exclusion_secondarystay
-  , case when t1.age <= 16 then 1 else 0 end as exclusion_nonadult
+  , case when t1.age <= 14 then 1 else 0 end as exclusion_nonadult
   , case when t1.first_service in ('CSURG','VSURG','TSURG') then 1 else 0 end as exclusion_csurg
   , case when t1.dbsource != 'metavision' then 1 else 0 end as exclusion_carevue
   , case when t1.suspected_infection_time_poe is not null
@@ -79,6 +70,9 @@ select
   , case when t1.suspected_infection_time_poe is not null
           and t1.suspected_infection_time_poe > (t1.intime+interval '1' day) then 1
       else 0 end as exclusion_late_suspicion
+  , case when t1.suspected_infection_time_poe is not null  -- CHANGED FROM ORIGINAL!
+          and t1.suspected_infection_time_poe < (t1.intime+interval '4' hour) then 1
+      else 0 end as exclusion_suspicion_before_4_hours
   , case when t1.HAS_CHARTEVENTS_DATA = 0 then 1
          when t1.intime is null then 1
          when t1.outtime is null then 1
@@ -88,21 +82,25 @@ select
   -- the above flags are used to summarize patients excluded
   -- below flag is used to actually exclude patients in future queries
   , case when
-             t1.rn != 1
-          or t1.age <= 16
-          or t1.first_service in ('CSURG','VSURG','TSURG')
+            --  t1.rn != 1
+          t1.age <= 14
+        --   or t1.first_service in ('CSURG','VSURG','TSURG')
           or t1.HAS_CHARTEVENTS_DATA = 0
           or t1.intime is null
           or t1.outtime is null
           or t1.dbsource != 'metavision'
           or (
                   t1.suspected_infection_time_poe is not null
-              and t1.suspected_infection_time_poe < (t1.intime-interval '1' day)
+              and t1.suspected_infection_time_poe < (t1.intime+interval '4' hour)
             )
-          or (
-                  t1.suspected_infection_time_poe is not null
-              and t1.suspected_infection_time_poe > (t1.intime+interval '1' day)
-            )
+        -- or (
+        --       t1.suspected_infection_time_poe is not null
+        --   and t1.suspected_infection_time_poe < (t1.intime-interval '1' day)
+        -- )
+        --   or (
+        --           t1.suspected_infection_time_poe is not null
+        --       and t1.suspected_infection_time_poe > (t1.intime+interval '1' day)
+        --     )
           -- or t1.suspected_of_infection = 0
             then 1
         else 0 end as excluded
