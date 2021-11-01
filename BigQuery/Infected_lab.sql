@@ -10,7 +10,7 @@ WITH
     from a ie
     left join `physionet-data.mimiciii_clinical.labevents` le
     on le.hadm_id = ie.hadm_id
-    and le.charttime between (ie.suspected_infection_time - interval '24' hour)
+    and le.charttime between (ie.suspected_infection_time - interval '48' hour)
         and ie.suspected_infection_time        
         and le.ITEMID in
       (
