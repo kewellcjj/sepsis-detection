@@ -93,7 +93,7 @@ def get_matched_controls():
     return result
 
 def load_matched_controls(df):
-    table_id = "cdcproject.BDFH.control_matches"
+    table_id = "cdcproject.BDFH.matched_controls_hourly"
 
     # Reference: https://googleapis.dev/python/bigquery/latest/usage/pandas.html#load-a-pandas-dataframe-to-a-bigquery-table
     print("Loading table: {}...".format(table_id))
