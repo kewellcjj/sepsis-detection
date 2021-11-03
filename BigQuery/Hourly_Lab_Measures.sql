@@ -1,3 +1,4 @@
+CREATE OR REPLACE TABLE `cdcproject.BDFH.Hourly_Lab_Measures` AS (
 WITH 
     a as (
     select s.*, ie.hadm_id 
@@ -43,9 +44,10 @@ WITH
         51300  -- WBC COUNT | HEMATOLOGY | BLOOD | 2371
       )
       and valuenum is not null and valuenum > 0
-)
+),
 
-select icustay_id
+  c as (
+    select icustay_id
   -- here we assign labels to ITEMIDs
   -- this also fuses together multiple ITEMIDs containing the same data
   , case
@@ -110,4 +112,10 @@ select icustay_id
         when itemid = 51144 and valuenum > 100 then null -- immature band forms, %
     else valuenum
     end as valuenum
-from b
+  from b
+  )
+
+  select *
+  from c
+  where valuenum is not null
+)
