@@ -93,7 +93,7 @@ select s3c.icustay_id
     , s3c.hadm_id
     , s3c.intime
     , s3c.outtime
-    , datetime_diff(s3c.outtime, s3c.intime, hour)
+    , datetime_diff(s3c.outtime, s3c.intime, second)
           / 60.0 / 60.0 as length_of_stay
     , sd.delta_score
     , sd.sepsis_onset
