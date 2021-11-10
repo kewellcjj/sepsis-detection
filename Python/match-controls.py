@@ -71,10 +71,11 @@ def get_matched_controls():
             matched_controls = controls_s[(i*rf):(rf*(i+1))] # select the next batch of controls to match to current case
             matched_controls = matched_controls.drop(columns=['delta_score', 'sepsis_onset']) #drop unnecessary cols
 
-            onset_hour = float(cases[cases['icustay_id']==case_id]['sepsis_onset_hour']) # get float of current case onset hour
+            length_of_stay = float(cases[cases['icustay_id']==case_id]['length_of_stay'])
+            onset_hour = random.uniform(0.0, length_of_stay)
             
-            matched_controls['control_onset_hour'] = onset_hour # use sepsis_onset_hour of current case as control_onset_hour
-            matched_controls['control_onset_time'] = matched_controls['intime'] + pd.Timedelta(hours=onset_hour) # compute control_onset time w.r.t. control icu-intime
+            matched_controls['control_onset_hour'] = onset_hour
+            matched_controls['control_onset_time'] = matched_controls['intime'] + pd.Timedelta(hours=onset_hour)
             matched_controls['matched_case_icustay_id'] = case_id # so that each matched control can be mapped back to its matched case
             
             result = result.append(matched_controls, ignore_index=True)
