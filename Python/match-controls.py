@@ -22,6 +22,7 @@ Detailed Description:
 import pandas as pd
 import numpy as np
 import os
+import random
 import sys
 
 from google.cloud import bigquery
@@ -70,15 +71,13 @@ def get_matched_controls():
         for i, case_id in enumerate(case_ids):
             matched_controls = controls_s[(i*rf):(rf*(i+1))] # select the next batch of controls to match to current case
             matched_controls = matched_controls.drop(columns=['delta_score', 'sepsis_onset']) #drop unnecessary cols
-
-            length_of_stay = float(cases[cases['icustay_id']==case_id]['length_of_stay'])
-            onset_hour = random.uniform(0.0, length_of_stay)
-            
-            matched_controls['control_onset_hour'] = onset_hour
-            matched_controls['control_onset_time'] = matched_controls['intime'] + pd.Timedelta(hours=onset_hour)
             matched_controls['matched_case_icustay_id'] = case_id # so that each matched control can be mapped back to its matched case
-            
             result = result.append(matched_controls, ignore_index=True)
+        
+        def random_onset_hour(los):
+            return random.uniform(0.0, los)
+        result['control_onset_hour'] = result['length_of_stay'].apply(random_onset_hour)
+        result['control_onset_time'] = result['intime'] + result['control_onset_hour'].astype('timedelta64[h]')
 
     # Sanity Check:
     if len(result) != rf*len(cases):
