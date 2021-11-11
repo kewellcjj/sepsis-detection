@@ -1,19 +1,19 @@
 /*
-Extract 48 hours of vital time series of sepsis case icustays before onset.
+Extract 48 hours of vital time series of control group icustays before control_onset_time.
 ---------------------------------------------------------------------------------------------------------------------
-- based on https://github.com/BorgwardtLab/mgp-tcn/blob/master/src/query/extract-55h-of-hourly-case-vital-series_ex1c.sql
+- based on https://github.com/BorgwardtLab/mgp-tcn/blob/master/src/query/extract-55h-of-hourly-control-vital-series_ex1c.sql
 ---------------------------------------------------------------------------------------------------------------------
 */
 
--- create or replace table `bdhfa2021.project.case_48h_hourly_vitals` as
+create or replace table `bdhfa2021.project.control_48h_hourly_vitals` as
 SELECT  pvt.icustay_id, pvt.subject_id -- removed , pvt.hadm_id,
 ,   pvt.chart_time 
 -- , case 
---     when pvt.chart_time < pvt.sepsis_onset then 0 
---     when pvt.chart_time between pvt.sepsis_onset and (pvt.sepsis_onset+interval '5' hour ) then 1
---     else 2 end as sepsis_target
+--     when pvt.chart_time < pvt.control_onset_time then 0 
+--     when pvt.chart_time between pvt.control_onset_time and (pvt.control_onset_time+interval '5' hour ) then 1
+--     else 2 end as pseudo_target
 --, case
---  when pvt.sepsis_onset > (pvt.intime + interval '150' hour) then 1
+--  when pvt.control_onset_time > (pvt.intime + interval '150' hour) then 1
 --  else 0 end as late_onset_after_150h
 
 
@@ -78,17 +78,17 @@ FROM  (
       -- convert F to C
   , case when itemid in (223761,678) then (valuenum-32)/1.8 else valuenum end as valuenum
   , ce.charttime as chart_time
-  , ch.sepsis_onset
+  , ch.control_onset_time
   , s3c.intime
 
-  from `bdhfa2021.project.cases` ch -- was icustays ie (changed it below as well)
+  from `bdhfa2021.project.controls` ch -- was icustays ie (changed it below as well)
   left join `physionet-data.mimiciii_clinical.icustays` ie
     on ch.icustay_id = ie.icustay_id
   left join `bdhfa2021.project.sepsis3_cohort` s3c
     on ch.icustay_id = s3c.icustay_id
   left join `physionet-data.mimiciii_clinical.chartevents` ce
     on ch.icustay_id = ce.icustay_id -- removed: ie.subject_id = ce.subject_id and ie.hadm_id = ce.hadm_id and 
-  and ce.charttime between (ch.sepsis_onset-interval '48' hour ) and ch.sepsis_onset 
+  and ce.charttime between (ch.control_onset_time-interval '48' hour ) and ch.control_onset_time 
 
   -- exclude rows marked as error
   where ce.error=0 and
@@ -213,5 +213,3 @@ FROM  (
 ) pvt
 --group by pvt.subject_id, pvt.hadm_id, pvt.icustay_id
 order by pvt.icustay_id, pvt.subject_id, pvt.chart_time; -- removed pvt.hadm_id, 
-
-
