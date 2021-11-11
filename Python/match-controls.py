@@ -34,6 +34,8 @@ bqclient = bigquery.Client()
 # rigorous mode that prevents controls to have shorter LOS than onset_hour
 rigorous = False
 
+random.seed(1)
+
 
 def get_matched_controls():
     result = pd.DataFrame()
