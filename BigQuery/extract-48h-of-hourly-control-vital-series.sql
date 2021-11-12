@@ -81,7 +81,7 @@ FROM  (
   , ch.control_onset_time
   , s3c.intime
 
-  from `bdhfa2021.project.controls` ch -- was icustays ie (changed it below as well)
+  from `bdhfa2021.project.matched_controls_hourly` ch -- was icustays ie (changed it below as well)
   left join `physionet-data.mimiciii_clinical.icustays` ie
     on ch.icustay_id = ie.icustay_id
   left join `bdhfa2021.project.sepsis3_cohort` s3c

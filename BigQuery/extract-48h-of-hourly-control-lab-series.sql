@@ -187,7 +187,7 @@ FROM
     ELSE le.valuenum
     END AS valuenum
 
-  from `bdhfa2021.project.controls` ch -- was icustays ie (changed it below as well)
+  from `bdhfa2021.project.matched_controls_hourly` ch -- was icustays ie (changed it below as well)
       left join `physionet-data.mimiciii_clinical.icustays` ie
       on ch.icustay_id = ie.icustay_id
     LEFT JOIN `physionet-data.mimiciii_clinical.labevents` le
