@@ -1,2 +1,6 @@
 *.ipynb
 Data/
+*.pyc
+__pycache__
+output/*.csv
+output/*.zip
