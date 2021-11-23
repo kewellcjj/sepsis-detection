@@ -19,7 +19,7 @@ def download(table_loc, series_len):
         )
     )
     
-    df.to_csv("output/static_variables.csv", index=False)
+    df.to_csv("Data/static_variables.csv", index=False)
     print("Create static_variables.csv")
 
     query_string = f"""
@@ -37,7 +37,7 @@ def download(table_loc, series_len):
         )
     )
     
-    df.to_csv("output/static_variables_cases.csv", index=False)
+    df.to_csv("Data/static_variables_cases.csv", index=False)
     print("Create static_variables_cases.csv")
 
     query_string = f"""
@@ -55,7 +55,7 @@ def download(table_loc, series_len):
         )
     )
     
-    df.to_csv("output/static_variables_controls.csv", index=False)
+    df.to_csv("Data/static_variables_controls.csv", index=False)
     print("Create static_variables_controls.csv")
 
     # Write labs to csv:
@@ -73,7 +73,7 @@ def download(table_loc, series_len):
         )
     )
     
-    df.to_csv(f"output/case_{series_len}h_hourly_labs.csv", index=False)
+    df.to_csv(f"Data/case_{series_len}h_hourly_labs.csv", index=False)
     print(f"Create case_{series_len}h_hourly_labs.csv")
 
     query_string = f"""
@@ -91,7 +91,7 @@ def download(table_loc, series_len):
     )
     
     print(f"Create control_{series_len}h_hourly_labs.csv...")
-    df.to_csv(f"output/control_{series_len}h_hourly_labs.csv", index=False)
+    df.to_csv(f"Data/control_{series_len}h_hourly_labs.csv", index=False)
     
     # Write vitals to csv:
     query_string = f"""
@@ -109,7 +109,7 @@ def download(table_loc, series_len):
     )
     
     print(f"Create case_{series_len}h_hourly_vitals.csv...")
-    df.to_csv(f"output/case_{series_len}h_hourly_vitals.csv", index=False)
+    df.to_csv(f"Data/case_{series_len}h_hourly_vitals.csv", index=False)
     
 
     query_string = f"""
@@ -127,13 +127,13 @@ def download(table_loc, series_len):
     )
     
     print(f"Create control_{series_len}h_hourly_vitals.csv...")
-    df.to_csv(f"output/control_{series_len}h_hourly_vitals.csv", index=False)
+    df.to_csv(f"Data/control_{series_len}h_hourly_vitals.csv", index=False)
 
 def final_exclusion(window_hr, series_len):
 
     print(f"Excluding icustays with onset_hour <= {window_hr}...")
 
-    static_case = pd.read_csv("output/static_variables_cases.csv")
+    static_case = pd.read_csv("Data/static_variables_cases.csv")
     print(f"Number of icustays static_variables_cases before exclusion {static_case.shape[0]}")
     # set de-identified ages to median of 91.4
     static_case.loc[static_case.admission_age > 89, 'admission_age'] = 91.4
@@ -141,16 +141,16 @@ def final_exclusion(window_hr, series_len):
     static_case = static_case[static_case.sepsis_onset_hour > window_hr]
     n_case1 = static_case.shape
     print(f"Number of icustays static_variables_cases after exclusion {static_case.shape[0]}")
-    static_case.to_csv(f"output/static_variables_cases_ex{window_hr}h.csv", index=False)
+    static_case.to_csv(f"Data/static_variables_cases_ex{window_hr}h.csv", index=False)
 
-    static_control = pd.read_csv("output/static_variables_controls.csv")
+    static_control = pd.read_csv("Data/static_variables_controls.csv")
     print(f"Number of icustays static_variables_controls before exclusion {static_control.shape[0]}")
     # set de-identified ages to median of 91.4
     static_control.loc[static_control.admission_age > 89, 'admission_age'] = 91.4
     # exclude controls with sepsis onset time within window_hr hours of icu admission
     static_control = static_control[static_control.control_onset_hour > window_hr]
     print(f"Number of icustays static_variables_controls after exclusion {static_control.shape[0]}")
-    static_control.to_csv(f"output/static_variables_controls_ex{window_hr}h.csv", index=False)
+    static_control.to_csv(f"Data/static_variables_controls_ex{window_hr}h.csv", index=False)
 
     # drop 11 lab measurements had most missing
     DROP_LAB = [
@@ -160,7 +160,7 @@ def final_exclusion(window_hr, series_len):
         'SedimentationRate', 'NTproBNP'
     ]
 
-    x = pd.read_csv(f"output/case_{series_len}h_hourly_labs.csv")
+    x = pd.read_csv(f"Data/case_{series_len}h_hourly_labs.csv")
     y = x.groupby(['icustay_id', 'chart_time'], as_index=False).mean()
     case_lab = y.drop(columns=DROP_LAB)
     print(f"case_lab before exclusion: # icustays {case_lab.drop_duplicates('icustay_id').shape[0]}, # records {case_lab.shape[0]}")
@@ -172,9 +172,9 @@ def final_exclusion(window_hr, series_len):
     # exclude records in prediction window
     case_lab = case_lab[case_lab.hr_feature > 0]
     print(f"case_lab after exclusion: # icustays {case_lab.drop_duplicates('icustay_id').shape[0]}, # records {case_lab.shape[0]}")
-    case_lab.to_csv(f"output/case_{series_len}h_labs_ex{window_hr}h.csv", index=False)
+    case_lab.to_csv(f"Data/case_{series_len}h_labs_ex{window_hr}h.csv", index=False)
 
-    x = pd.read_csv(f"output/control_{series_len}h_hourly_labs.csv")
+    x = pd.read_csv(f"Data/control_{series_len}h_hourly_labs.csv")
     y = x.groupby(['icustay_id', 'chart_time'], as_index=False).mean()
     control_lab = y.drop(columns=DROP_LAB)
     print(f"control_lab before exclusion: # icustays {control_lab.drop_duplicates('icustay_id').shape[0]}, # records {control_lab.shape[0]}")
@@ -186,7 +186,7 @@ def final_exclusion(window_hr, series_len):
     # exclude records in prediction window
     control_lab = control_lab[control_lab.hr_feature > 0]
     print(f"control_lab after exclusion: # icustays {control_lab.drop_duplicates('icustay_id').shape[0]}, # records {control_lab.shape[0]}")
-    control_lab.to_csv(f"output/control_{series_len}h_labs_ex{window_hr}h.csv", index=False)
+    control_lab.to_csv(f"Data/control_{series_len}h_labs_ex{window_hr}h.csv", index=False)
 
     DROP_VITAL = [
         'VitalCapacity', 'TFC',          
@@ -194,7 +194,7 @@ def final_exclusion(window_hr, series_len):
         'CRP', 'SV', 'SVV'    
     ]
 
-    x = pd.read_csv(f"output/case_{series_len}h_hourly_vitals.csv")
+    x = pd.read_csv(f"Data/case_{series_len}h_hourly_vitals.csv")
     y = x.groupby(['icustay_id', 'chart_time'], as_index=False).mean()
     case_vital = y.drop(columns=DROP_VITAL)
     print(f"case_vital before exclusion: # icustays {case_vital.drop_duplicates('icustay_id').shape[0]}, # records {case_vital.shape[0]}")
@@ -206,9 +206,9 @@ def final_exclusion(window_hr, series_len):
     # exclude records in prediction window
     case_vital = case_vital[case_vital.hr_feature > 0]
     print(f"case_vital after exclusion: # icustays {case_vital.drop_duplicates('icustay_id').shape[0]}, # records {case_vital.shape[0]}")
-    case_vital.to_csv(f"output/case_{series_len}h_vitals_ex{window_hr}h.csv", index=False)
+    case_vital.to_csv(f"Data/case_{series_len}h_vitals_ex{window_hr}h.csv", index=False)
 
-    x = pd.read_csv(f"output/control_{series_len}h_hourly_vitals.csv")
+    x = pd.read_csv(f"Data/control_{series_len}h_hourly_vitals.csv")
     y = x.groupby(['icustay_id', 'chart_time'], as_index=False).mean()
     control_vital = y.drop(columns=DROP_VITAL)
     print(f"control_vital before exclusion: # icustays {control_vital.drop_duplicates('icustay_id').shape[0]}, # records {control_vital.shape[0]}")
@@ -220,7 +220,7 @@ def final_exclusion(window_hr, series_len):
     # exclude records in prediction window
     control_vital = control_vital[control_vital.hr_feature > 0]
     print(f"control_vital after exclusion: # icustays {control_vital.drop_duplicates('icustay_id').shape[0]}, # records {control_vital.shape[0]}")
-    control_vital.to_csv(f"output/control_{series_len}h_vitals_ex{window_hr}h.csv", index=False)
+    control_vital.to_csv(f"Data/control_{series_len}h_vitals_ex{window_hr}h.csv", index=False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Post-process the exported output files from the SQL query <ENTER_NAME>")
