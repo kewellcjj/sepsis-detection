@@ -4,3 +4,4 @@ Data/
 __pycache__
 output/*.csv
 output/*.zip
+!*_Model.ipynb
