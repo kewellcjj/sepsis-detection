@@ -1,3 +1,4 @@
+CREATE OR REPLACE TABLE `cdcproject.BDFH.Hourly_Lab_Measures` AS (
 WITH 
     a as (
     select s.*, ie.hadm_id 
@@ -10,7 +11,7 @@ WITH
     from a ie
     left join `physionet-data.mimiciii_clinical.labevents` le
     on le.hadm_id = ie.hadm_id
-    and le.charttime between (ie.suspected_infection_time - interval '24' hour)
+    and le.charttime between (ie.suspected_infection_time - interval '48' hour)
         and ie.suspected_infection_time        
         and le.ITEMID in
       (
@@ -43,9 +44,10 @@ WITH
         51300  -- WBC COUNT | HEMATOLOGY | BLOOD | 2371
       )
       and valuenum is not null and valuenum > 0
-)
+),
 
-select icustay_id
+  c as (
+    select icustay_id
   -- here we assign labels to ITEMIDs
   -- this also fuses together multiple ITEMIDs containing the same data
   , case
@@ -110,4 +112,10 @@ select icustay_id
         when itemid = 51144 and valuenum > 100 then null -- immature band forms, %
     else valuenum
     end as valuenum
-from b
+  from b
+  )
+
+  select *
+  from c
+  where valuenum is not null
+)
