@@ -33,7 +33,7 @@ The data will be saved in the Data folder.
 All models are in development. For the latest versions, check the individual branches if not found under the main branch:
 
 * [Logistic regression, SVM](https://github.gatech.edu/amalhotra60/CSE-6250-Group-Project/blob/main/Lightgbm__LR_SVM_Model.ipynb)
-* [LightGBM](https://github.gatech.edu/amalhotra60/CSE-6250-Group-Project/blob/lightgbm/Lightgbm_Model.ipynb)
+* [LightGBM](https://github.gatech.edu/amalhotra60/CSE-6250-Group-Project/blob/main/Lightgbm_Model.ipynb)
 * [RNN](https://github.gatech.edu/amalhotra60/CSE-6250-Group-Project/blob/main/RNN_Model.ipynb)
 
 ## Resource
