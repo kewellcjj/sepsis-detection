@@ -22,20 +22,8 @@ Detailed Description:
 import pandas as pd
 import numpy as np
 import os
-import random
-import sys
-
+import argparse
 from google.cloud import bigquery
-
-# GCP credentials
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(os.getcwd(), "bdfh.json")
-bqclient = bigquery.Client()
-
-# rigorous mode that prevents controls to have shorter LOS than onset_hour
-rigorous = False
-
-random.seed(1)
-
 
 def get_matched_controls():
     result = pd.DataFrame()
@@ -43,8 +31,8 @@ def get_matched_controls():
     # 1. Load Input data
     # This step has been modified from https://github.com/BorgwardtLab/mgp-tcn
     #--------------------
-    cases = bqclient.query("select * from cdcproject.BDFH.cases").result().to_dataframe()
-    controls = bqclient.query("select * from cdcproject.BDFH.controls").result().to_dataframe()
+    cases = bqclient.query(f"select * from {TABLE_lOC}.cases").result().to_dataframe()
+    controls = bqclient.query(f"select * from {TABLE_lOC}.controls").result().to_dataframe()
 
     controls = controls.drop_duplicates() # drop duplicate rows (NOTE: it seems like there are no duplicates) 
     controls = controls.reset_index(drop=True) # resetting row index for aesthetic reasons
@@ -56,50 +44,65 @@ def get_matched_controls():
     # 2. Determine Control/Case Ratio
     #--------------------------------
     ratio = len(control_ids)/float(len(case_ids))
-    rf = int(np.floor(ratio)) # rf is the ratio floored, to receive the largest viable integer ratio
 
     #---------------------------------------------
     # 3. For each case match 'ratio-many' controls 
     #---------------------------------------------
-    if rigorous:
-        # Apply patient horizon filtering here before matching!
-        min_length=7
-        selected_cases = cases[cases['sepsis_onset_hour']>=min_length]
-        # TODO for future work: improved matching here!
-        sys.exit()
-    else: # random matching without conditions
-        controls_s = controls.iloc[np.random.permutation(len(controls))] # Shuffle controls dataframe rows, for random control selection
 
-        for i, case_id in enumerate(case_ids):
-            matched_controls = controls_s[(i*rf):(rf*(i+1))] # select the next batch of controls to match to current case
-            matched_controls = matched_controls.drop(columns=['delta_score', 'sepsis_onset']) #drop unnecessary cols
-            matched_controls['matched_case_icustay_id'] = case_id # so that each matched control can be mapped back to its matched case
-            result = result.append(matched_controls, ignore_index=True)
+    # random matching without conditions
+    controls_s = controls.iloc[np.random.permutation(len(controls))] # Shuffle controls dataframe rows, for random control selection
+
+    for i, case_id in enumerate(case_ids):
+        matched_controls = controls_s[int(i*ratio):int(ratio*(i+1))].copy() # select the next batch of controls to match to current case
+        onset_hour = float(cases[cases['icustay_id']==case_id]['sepsis_onset_hour']) # get float of current case onset hour
+        matched_controls['control_onset_hour'] = onset_hour # use sepsis_onset_hour of current case as control_onset_hour
+        matched_controls['control_onset_time'] = matched_controls['intime'] + pd.Timedelta(hours=onset_hour) # compute control_onset time w.r.t. control icu-intime
+        matched_controls['matched_case_icustay_id'] = case_id # so that each matched control can be mapped back to its matched case
+        result = result.append(matched_controls, ignore_index=True)
         
-        def random_onset_hour(los):
-            return random.uniform(0.0, los)
-        result['control_onset_hour'] = result['length_of_stay'].apply(random_onset_hour)
-        result['control_onset_time'] = result['intime'] + result['control_onset_hour'].astype('timedelta64[h]')
-
     # Sanity Check:
-    if len(result) != rf*len(cases):
+    if abs(len(result) - int(ratio*(i+1)))>1:
         raise ValueError('Resulting matched_controls dataframe not as long as ratio * #cases!')    
+
+    # drop controls with onset later than discharge
+    result = result[result.control_onset_hour < result.length_of_stay]
 
     print('Number of Cases: {}'.format(len(case_ids)))
     print('Number of Controls: {}'.format(len(control_ids)))
-    print('Matching Ratio: {}, floored: {}'.format(ratio, rf))
-
+    print('Matching Ratio: {}'.format(ratio))
+    print('Matched controls: {}'.format(result.shape[0]))
     #---------------------------------------------------------------------
     # 4. Return matched controls for next step (load BigQuery table)
     #---------------------------------------------------------------------
     return result
 
 def load_matched_controls(df):
-    table_id = "cdcproject.BDFH.matched_controls_hourly"
+    table_id = f"{TABLE_lOC}.matched_controls_hourly"
+    print("Delete table: {} if exists...".format(table_id))
+    bqclient.delete_table(table_id, not_found_ok=True)
 
-    # Reference: https://googleapis.dev/python/bigquery/latest/usage/pandas.html#load-a-pandas-dataframe-to-a-bigquery-table
+    # Reference: 
+    # https://googleapis.dev/python/bigquery/latest/usage/pandas.html#load-a-pandas-dataframe-to-a-bigquery-table
+    # https://cloud.google.com/bigquery/docs/tables 
+    # https://github.com/googleapis/python-bigquery/issues/56
     print("Loading table: {}...".format(table_id))
-    job = bqclient.load_table_from_dataframe(df, table_id)
+
+    schema = [
+        bigquery.SchemaField("icustay_id", "INTEGER", mode="NULLABLE"),
+        bigquery.SchemaField("hadm_id", "INTEGER", mode="NULLABLE"),
+        bigquery.SchemaField("intime", "DATETIME", mode="NULLABLE"),
+        bigquery.SchemaField("outtime", "DATETIME", mode="NULLABLE"),
+        bigquery.SchemaField("length_of_stay", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("SUBJECT_ID", "INTEGER", mode="NULLABLE"),
+        bigquery.SchemaField("control_onset_time", "DATETIME", mode="NULLABLE"),
+        bigquery.SchemaField("control_onset_hour", "FLOAT", mode="NULLABLE"),
+        bigquery.SchemaField("matched_case_icustay_id", "INTEGER", mode="NULLABLE"),
+    ]
+
+    table = bigquery.Table(table_id, schema=schema)
+    bqclient.create_table(table)  # Make an API request.
+    job = bqclient.load_table_from_dataframe(df, table)
+    
     job.result()  # Wait for the job to complete.
 
     table = bqclient.get_table(table_id)  
@@ -114,4 +117,17 @@ def main():
     load_matched_controls(cc_matches)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Generate control_onset_time")
+    parser.add_argument("-c", "--credential", required=True,
+                        help="Google credential json file name under current working directory")
+    parser.add_argument("-t", "--tableloc", required=True, 
+                        help="Project and dataset name, e.g. cdc.project")
+    args = parser.parse_args()
+    # GCP credentials
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(os.getcwd(), args.credential)
+    bqclient = bigquery.Client()
+    
+    np.random.seed(1)
+
+    TABLE_lOC = args.tableloc
     main()
