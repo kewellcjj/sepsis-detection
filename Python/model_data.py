@@ -73,7 +73,6 @@ def model_data(model_type, path='Data', test_size=.1):
 
     elif model_type == "RNN":
         case_static = case_static.drop(columns=['subject_id'])
-        print(case_static.shape)
         case_static['label'] = 1
         case_labs = case_labs.drop(columns=['subject_id', 'chart_time', 'sepsis_onset'])
         case_labs['hr_feature'] = 45-np.ceil(case_labs['hr_feature'])
