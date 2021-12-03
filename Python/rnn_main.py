@@ -25,7 +25,6 @@ def rnn_fit(params):
     layer_size = params['layer_size']
     dropout = params['dropout']
     for fold, (train_index, valid_index) in enumerate(skf.split(static_train.index, static_train.label)):
-        # print("TRAIN:", static_train.index[train_index], "TEST:", static_train.index[valid_index])
         y_train, y_valid = static_train.loc[static_train.index[train_index], ['label']], static_train.loc[static_train.index[valid_index], ['label']]
 
         x_train = y_train.join(seq_train).drop(columns=['label'])
@@ -42,7 +41,7 @@ def rnn_fit(params):
 
         model = RNN(x_train.shape[1], gru_input, hidden_dim, layer_size, dropout)
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=1e-3)
+        optimizer = optim.Adam(model.parameters(), lr=LR)
         scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=.2)
 
         model.to(device)
