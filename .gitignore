@@ -1,1 +1,8 @@
+*.ipynb
+Data/
+*.pyc
+__pycache__
+output/*.zip
+!*_Model.ipynb
+!RNN*.ipynb
 bdfh.json

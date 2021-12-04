@@ -170,7 +170,7 @@ def final_exclusion(window_hr, series_len):
     # hours before start of prediction window
     case_lab['hr_feature'] = (case_lab.sepsis_onset-case_lab.chart_time)/pd.Timedelta(hours=1) - window_hr
     # exclude records in prediction window
-    case_lab = case_lab[case_lab.hr_feature > 0]
+    case_lab = case_lab[case_lab.hr_feature >= 0]
     print(f"case_lab after exclusion: # icustays {case_lab.drop_duplicates('icustay_id').shape[0]}, # records {case_lab.shape[0]}")
     case_lab.to_csv(f"Data/case_{series_len}h_labs_ex{window_hr}h.csv", index=False)
 
@@ -184,7 +184,7 @@ def final_exclusion(window_hr, series_len):
     # hours before start of prediction window
     control_lab['hr_feature'] = (control_lab.control_onset_time-control_lab.chart_time)/pd.Timedelta(hours=1) - window_hr
     # exclude records in prediction window
-    control_lab = control_lab[control_lab.hr_feature > 0]
+    control_lab = control_lab[control_lab.hr_feature >= 0]
     print(f"control_lab after exclusion: # icustays {control_lab.drop_duplicates('icustay_id').shape[0]}, # records {control_lab.shape[0]}")
     control_lab.to_csv(f"Data/control_{series_len}h_labs_ex{window_hr}h.csv", index=False)
 
@@ -204,7 +204,7 @@ def final_exclusion(window_hr, series_len):
     # hours before start of prediction window
     case_vital['hr_feature'] = (case_vital.sepsis_onset-case_vital.chart_time)/pd.Timedelta(hours=1) - window_hr
     # exclude records in prediction window
-    case_vital = case_vital[case_vital.hr_feature > 0]
+    case_vital = case_vital[case_vital.hr_feature >= 0]
     print(f"case_vital after exclusion: # icustays {case_vital.drop_duplicates('icustay_id').shape[0]}, # records {case_vital.shape[0]}")
     case_vital.to_csv(f"Data/case_{series_len}h_vitals_ex{window_hr}h.csv", index=False)
 
@@ -218,7 +218,7 @@ def final_exclusion(window_hr, series_len):
     # hours before start of prediction window
     control_vital['hr_feature'] = (control_vital.control_onset_time-control_vital.chart_time)/pd.Timedelta(hours=1) - window_hr
     # exclude records in prediction window
-    control_vital = control_vital[control_vital.hr_feature > 0]
+    control_vital = control_vital[control_vital.hr_feature >= 0]
     print(f"control_vital after exclusion: # icustays {control_vital.drop_duplicates('icustay_id').shape[0]}, # records {control_vital.shape[0]}")
     control_vital.to_csv(f"Data/control_{series_len}h_vitals_ex{window_hr}h.csv", index=False)
 

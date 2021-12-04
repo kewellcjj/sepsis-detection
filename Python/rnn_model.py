@@ -1,34 +1,28 @@
-# borrowed gatech cse6250 hw5 template
-
 import os
 import torch
 from torch import dropout
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pack_padded_sequence
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import confusion_matrix, roc_auc_score
+from sklearn.metrics import roc_auc_score
 
 class RNN(nn.Module):
-    def __init__(self, dim_input):
+    def __init__(self, dim_input, gru_input, hidden_dim, layer_size, dropout):
         super(RNN, self).__init__()
 
-        self.gru = nn.GRU(dim_input, 128, 3, batch_first=True, dropout=.5)
-        self.fc1 = nn.Linear(128, 2)
-#         self.bn = nn.BatchNorm1d(64)
-#         self.relu = nn.ReLU()
-#         self.dropout = nn.Dropout(.2)
-#         self.fc2 = nn.Linear(64, 2)
-
+        self.fc0 = nn.Linear(dim_input, gru_input)
+        self.tanh = nn.Tanh()
+        self.gru = nn.GRU(gru_input, hidden_dim, layer_size, batch_first=True, dropout=dropout)
+        self.fc1 = nn.Linear(hidden_dim, 2)
 
     def forward(self, input_tuple):
         seqs, lengths = input_tuple
-
+        seqs = self.tanh(self.fc0(seqs))
         out = pack_padded_sequence(input=seqs, batch_first=True, lengths=lengths.cpu())
     
         _, out = self.gru(out)
         out = self.fc1(out[-1,:,:].squeeze())
-#         out = self.fc2(self.dropout(self.relu(self.bn(out))))
         return out
 
 class AverageMeter(object):
