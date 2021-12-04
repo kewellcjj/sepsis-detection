@@ -28,13 +28,13 @@ def model_data(model_type, path='Data', test_size=.1):
     control_vitals = pd.read_csv(f"{path}/control_48h_vitals_ex3h.csv")
     control_static = pd.read_csv(f"{path}/static_variables_controls_ex3h.csv")
 
-    if path == 'data_v2':
-        case_labs.drop(columns=['Unnamed: 0'], inplace=True)
-        case_vitals.drop(columns=['Unnamed: 0'], inplace=True)
-        case_static.drop(columns=['Unnamed: 0'], inplace=True)
-        control_labs.drop(columns=['Unnamed: 0'], inplace=True)
-        control_vitals.drop(columns=['Unnamed: 0'], inplace=True)
-        control_static.drop(columns=['Unnamed: 0'], inplace=True)
+    # if path == 'data_v2':
+    #     case_labs.drop(columns=['Unnamed: 0'], inplace=True)
+    #     case_vitals.drop(columns=['Unnamed: 0'], inplace=True)
+    #     case_static.drop(columns=['Unnamed: 0'], inplace=True)
+    #     control_labs.drop(columns=['Unnamed: 0'], inplace=True)
+    #     control_vitals.drop(columns=['Unnamed: 0'], inplace=True)
+    #     control_static.drop(columns=['Unnamed: 0'], inplace=True)
 
     if model_type in ("LGBM", "SVM", "LR"):
         case_labs = case_labs.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
