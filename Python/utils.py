@@ -35,7 +35,7 @@ def classification_metrics(classifierName, y_true, y_pred):
 
 def plot_roc(figname, **kwargs):
     with plt.style.context('ieee'):
-        plt.figure(figsize=(4, 4))
+        plt.figure()
         for classifierName, rocfile in kwargs.items():
             roc = pd.read_csv(rocfile)
             auc = metrics.auc(roc.fpr, roc.tpr)
@@ -47,7 +47,7 @@ def plot_roc(figname, **kwargs):
 
 def plot_prc(figname, **kwargs):
     with plt.style.context('ieee'):
-        plt.figure(figsize=(4, 4))
+        plt.figure()
         for classifierName, prcfile in kwargs.items():
             prc = pd.read_csv(prcfile)
             auprc = metrics.auc(prc.recall, prc.precision)
