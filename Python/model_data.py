@@ -19,6 +19,7 @@ def race_recode(df):
     return df
 
 def model_data(model_type, path='Data', test_size=.1):
+
     case_labs = pd.read_csv(f"{path}/case_48h_labs_ex3h.csv")
     case_vitals = pd.read_csv(f"{path}/case_48h_vitals_ex3h.csv")
     case_static = pd.read_csv(f"{path}/static_variables_cases_ex3h.csv")
@@ -27,20 +28,30 @@ def model_data(model_type, path='Data', test_size=.1):
     control_vitals = pd.read_csv(f"{path}/control_48h_vitals_ex3h.csv")
     control_static = pd.read_csv(f"{path}/static_variables_controls_ex3h.csv")
 
+    # if path == 'data_v2':
+    #     case_labs.drop(columns=['Unnamed: 0'], inplace=True)
+    #     case_vitals.drop(columns=['Unnamed: 0'], inplace=True)
+    #     case_static.drop(columns=['Unnamed: 0'], inplace=True)
+    #     control_labs.drop(columns=['Unnamed: 0'], inplace=True)
+    #     control_vitals.drop(columns=['Unnamed: 0'], inplace=True)
+    #     control_static.drop(columns=['Unnamed: 0'], inplace=True)
+
     if model_type in ("LGBM", "SVM", "LR"):
         case_labs = case_labs.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
-        apply_dict = {col: ['mean', 'median', 'std'] for col in case_labs.columns if col != 'icustay_id'}
+        apply_dict = {col: ['mean', 'median', 'std',  'min', 'max'] for col in case_labs.columns if col != 'icustay_id'}
         case_labs = case_labs.groupby('icustay_id').agg(apply_dict)
         case_labs.columns = ['_'.join(col) for col in case_labs.columns]
 
         case_static = case_static[['gender', 'ethnicity', 'admission_age', 'icustay_id']]
         case_static['label'] = 1
         case_static = race_recode(case_static)
-        case_static['ethnicity'] = LabelEncoder().fit_transform(case_static['ethnicity'])
+
+        # case_static['ethnicity'] = LabelEncoder().fit_transform(case_static['ethnicity'])
+        case_static = pd.concat((case_static.drop(columns=['ethnicity']), pd.get_dummies(case_static['ethnicity'])), axis = 1)
         case_static['gender'] = LabelEncoder().fit_transform(case_static['gender'])
 
         case_vitals = case_vitals.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
-        apply_dict = {col: ['mean', 'median', 'std'] for col in case_vitals.columns if col != 'icustay_id'}
+        apply_dict = {col: ['mean', 'median', 'std', 'min', 'max'] for col in case_vitals.columns if col != 'icustay_id'}
         case_vitals = case_vitals.groupby('icustay_id').agg(apply_dict)
         case_vitals.columns = ['_'.join(col) for col in case_vitals.columns]
 
@@ -48,18 +59,20 @@ def model_data(model_type, path='Data', test_size=.1):
 
 
         control_labs = control_labs.drop(columns=['chart_time', 'subject_id', 'control_onset_time', 'hr_feature'])
-        apply_dict = {col: ['mean', 'median', 'std'] for col in control_labs.columns if col != 'icustay_id'}
+        apply_dict = {col: ['mean', 'median', 'std', 'min', 'max'] for col in control_labs.columns if col != 'icustay_id'}
         control_labs = control_labs.groupby('icustay_id').agg(apply_dict)
         control_labs.columns = ['_'.join(col) for col in control_labs.columns]
 
         control_static = control_static[['gender', 'ethnicity', 'admission_age', 'icustay_id']]
         control_static['label'] = 0
         control_static = race_recode(control_static)
-        control_static['ethnicity'] = LabelEncoder().fit_transform(control_static['ethnicity'])
+        # control_static['ethnicity'] = LabelEncoder().fit_transform(control_static['ethnicity'])
+
+        control_static = pd.concat((control_static.drop(columns=['ethnicity']), pd.get_dummies(control_static['ethnicity'])), axis = 1)
         control_static['gender'] = LabelEncoder().fit_transform(control_static['gender'])
 
         control_vitals = control_vitals.drop(columns=['chart_time', 'subject_id', 'control_onset_time', 'hr_feature'])
-        apply_dict = {col: ['mean', 'median', 'std'] for col in control_vitals.columns if col != 'icustay_id'}
+        apply_dict = {col: ['mean', 'median', 'std', 'min', 'max'] for col in control_vitals.columns if col != 'icustay_id'}
         control_vitals = control_vitals.groupby('icustay_id').agg(apply_dict)
         control_vitals.columns = ['_'.join(col) for col in control_vitals.columns]
 
