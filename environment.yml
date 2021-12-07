@@ -7,7 +7,9 @@ dependencies:
   - pytorch
   - torchvision
   - cudatoolkit=10.2
+  - jupyter
   - scikit-learn
+  - scipy
   - numpy
   - pandas
   - matplotlib

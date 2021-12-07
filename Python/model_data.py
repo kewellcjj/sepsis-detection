@@ -79,7 +79,6 @@ def model_data(model_type, path='Data', test_size=.1):
         control_all = control_static.merge(control_labs, on='icustay_id').merge(control_vitals, on='icustay_id')
 
         df_all = pd.concat([case_all, control_all], ignore_index=True).sort_values('icustay_id')
-
         df_train, df_test = train_test_split(df_all, test_size=test_size, random_state=42, stratify=df_all["label"])
         print(f"Train/Test data size: {df_train.shape[0]}/{df_test.shape[0]}")
         return df_train, df_test
