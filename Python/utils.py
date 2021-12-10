@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn import metrics
 import matplotlib.pyplot as plt
+from matplotlib import rc,rcParams
+
 
 def classification_metrics(classifierName, y_true, y_pred):
     if isinstance(y_true, list):
@@ -34,25 +36,52 @@ def classification_metrics(classifierName, y_true, y_pred):
     print("")
 
 def plot_roc(figname, **kwargs):
-    with plt.style.context('ieee'):
-        plt.figure()
-        for classifierName, rocfile in kwargs.items():
-            roc = pd.read_csv(rocfile)
-            auc = metrics.auc(roc.fpr, roc.tpr)
-            plt.plot(roc.fpr, roc.tpr,label=f"{classifierName} AUC={auc:.3f}")
-        plt.xlabel("False Positive Rate")
-        plt.ylabel("True Positive Rate")
-        plt.legend()
-        plt.savefig(figname)
+    # with plt.style.context('ggplot'):
+    plt.style.use('ggplot')
+    for classifierName, rocfile in kwargs.items():
+        roc = pd.read_csv(rocfile)
+        auc = metrics.auc(roc.fpr, roc.tpr)
+        plt.plot(roc.fpr, roc.tpr,label=f"{classifierName} AUC={auc:.3f}")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.legend()
+    plt.plot()    
+    plt.savefig(figname)
+    plt.clf()
 
 def plot_prc(figname, **kwargs):
-    with plt.style.context('ieee'):
-        plt.figure()
-        for classifierName, prcfile in kwargs.items():
-            prc = pd.read_csv(prcfile)
-            auprc = metrics.auc(prc.recall, prc.precision)
-            plt.plot(prc.recall, prc.precision,label=f"{classifierName} AUPRC={auprc:.3f}")
-        plt.xlabel("Recall")
-        plt.ylabel("Precision")
-        plt.legend()
-        plt.savefig(figname)
+    # with plt.style.context('ggplot'):
+    plt.style.use('ggplot')
+    for classifierName, prcfile in kwargs.items():
+        prc = pd.read_csv(prcfile)
+        auprc = metrics.auc(prc.recall, prc.precision)
+        plt.plot(prc.recall, prc.precision,label=f"{classifierName} AUPRC={auprc:.3f}")
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.legend()
+    plt.plot()
+    plt.savefig(figname)
+    plt.clf()
+
+def plot_roc_prc(figname, prcfile, rocfile, classifierName = 'LightGBM'):
+    plt.style.use('default')
+    prc = pd.read_csv(prcfile)
+    roc = pd.read_csv(rocfile)
+    auprc = metrics.auc(prc.recall, prc.precision)
+    auroc = metrics.auc(roc.fpr, roc.tpr)
+
+    f, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
+
+    axes[0].plot(roc.fpr, roc.tpr,label=f"{classifierName} AUPRC={auroc:.3f}", color='red')
+    axes[0].set_xlabel("False Positive Rate", fontweight='bold', fontsize=18)
+    axes[0].set_ylabel("True Positive Rate", fontweight='bold', fontsize=18)
+    axes[0].legend(fontsize=18)
+
+    axes[1].plot(prc.recall, prc.precision,label=f"{classifierName} AUPRC={auprc:.3f}", color='blue')
+    axes[1].set_xlabel("Recall", fontweight='bold', fontsize=18)
+    axes[1].set_ylabel("Precision", fontweight='bold', fontsize=18)
+    axes[1].legend(fontsize=18)
+    
+    # plt.plot()
+    f.savefig(figname)
+    plt.clf()
