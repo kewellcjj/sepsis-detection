@@ -37,13 +37,10 @@ def model_data(model_type, path='Data', test_size=.1):
     #     control_static.drop(columns=['Unnamed: 0'], inplace=True)
 
     if model_type in ("LGBM", "SVM", "LR"):
-
-        summary_stats = ['mean', 'median', 'std',  'min', 'max', 'count']
-
-        case_labs = case_labs.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
-        apply_dict = {col: summary_stats for col in case_labs.columns if col != 'icustay_id'}
-        case_labs = case_labs.groupby('icustay_id').agg(apply_dict)
-        case_labs.columns = ['_'.join(col) for col in case_labs.columns]
+        # case_labs = case_labs.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
+        # apply_dict = {col: ['mean', 'median', 'std',  'min', 'max'] for col in case_labs.columns if col != 'icustay_id'}
+        # case_labs = case_labs.groupby('icustay_id').agg(apply_dict)
+        # case_labs.columns = ['_'.join(col) for col in case_labs.columns]
 
         case_static = case_static[['gender', 'ethnicity', 'admission_age', 'icustay_id']]
         case_static['label'] = 1
@@ -53,18 +50,18 @@ def model_data(model_type, path='Data', test_size=.1):
         case_static = pd.concat((case_static.drop(columns=['ethnicity']), pd.get_dummies(case_static['ethnicity'])), axis = 1)
         case_static['gender'] = LabelEncoder().fit_transform(case_static['gender'])
 
-        case_vitals = case_vitals.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
-        apply_dict = {col: summary_stats for col in case_vitals.columns if col != 'icustay_id'}
-        case_vitals = case_vitals.groupby('icustay_id').agg(apply_dict)
-        case_vitals.columns = ['_'.join(col) for col in case_vitals.columns]
+        # case_vitals = case_vitals.drop(columns=['chart_time', 'subject_id', 'sepsis_onset', 'hr_feature'])
+        # apply_dict = {col: ['mean', 'median', 'std', 'min', 'max'] for col in case_vitals.columns if col != 'icustay_id'}
+        # case_vitals = case_vitals.groupby('icustay_id').agg(apply_dict)
+        # case_vitals.columns = ['_'.join(col) for col in case_vitals.columns]
 
-        case_all = case_static.merge(case_labs, on='icustay_id').merge(case_vitals, on='icustay_id')
+        case_all = case_static#.merge(case_labs, on='icustay_id').merge(case_vitals, on='icustay_id')
 
 
-        control_labs = control_labs.drop(columns=['chart_time', 'subject_id', 'control_onset_time', 'hr_feature'])
-        apply_dict = {col: summary_stats for col in control_labs.columns if col != 'icustay_id'}
-        control_labs = control_labs.groupby('icustay_id').agg(apply_dict)
-        control_labs.columns = ['_'.join(col) for col in control_labs.columns]
+        # control_labs = control_labs.drop(columns=['chart_time', 'subject_id', 'control_onset_time', 'hr_feature'])
+        # apply_dict = {col: ['mean', 'median', 'std', 'min', 'max'] for col in control_labs.columns if col != 'icustay_id'}
+        # control_labs = control_labs.groupby('icustay_id').agg(apply_dict)
+        # control_labs.columns = ['_'.join(col) for col in control_labs.columns]
 
         control_static = control_static[['gender', 'ethnicity', 'admission_age', 'icustay_id']]
         control_static['label'] = 0
@@ -74,12 +71,12 @@ def model_data(model_type, path='Data', test_size=.1):
         control_static = pd.concat((control_static.drop(columns=['ethnicity']), pd.get_dummies(control_static['ethnicity'])), axis = 1)
         control_static['gender'] = LabelEncoder().fit_transform(control_static['gender'])
 
-        control_vitals = control_vitals.drop(columns=['chart_time', 'subject_id', 'control_onset_time', 'hr_feature'])
-        apply_dict = {col: summary_stats for col in control_vitals.columns if col != 'icustay_id'}
-        control_vitals = control_vitals.groupby('icustay_id').agg(apply_dict)
-        control_vitals.columns = ['_'.join(col) for col in control_vitals.columns]
+        # control_vitals = control_vitals.drop(columns=['chart_time', 'subject_id', 'control_onset_time', 'hr_feature'])
+        # apply_dict = {col: ['mean', 'median', 'std', 'min', 'max'] for col in control_vitals.columns if col != 'icustay_id'}
+        # control_vitals = control_vitals.groupby('icustay_id').agg(apply_dict)
+        # control_vitals.columns = ['_'.join(col) for col in control_vitals.columns]
 
-        control_all = control_static.merge(control_labs, on='icustay_id').merge(control_vitals, on='icustay_id')
+        control_all = control_static#.merge(control_labs, on='icustay_id').merge(control_vitals, on='icustay_id')
 
         df_all = pd.concat([case_all, control_all], ignore_index=True).sort_values('icustay_id')
 
