@@ -28,14 +28,6 @@ def model_data(model_type, path='Data', test_size=.1):
     control_vitals = pd.read_csv(f"{path}/control_48h_vitals_ex3h.csv")
     control_static = pd.read_csv(f"{path}/static_variables_controls_ex3h.csv")
 
-    # if path == 'data_v2':
-    #     case_labs.drop(columns=['Unnamed: 0'], inplace=True)
-    #     case_vitals.drop(columns=['Unnamed: 0'], inplace=True)
-    #     case_static.drop(columns=['Unnamed: 0'], inplace=True)
-    #     control_labs.drop(columns=['Unnamed: 0'], inplace=True)
-    #     control_vitals.drop(columns=['Unnamed: 0'], inplace=True)
-    #     control_static.drop(columns=['Unnamed: 0'], inplace=True)
-
     if model_type in ("LGBM", "SVM", "LR"):
 
         summary_stats = ['mean', 'median', 'std',  'min', 'max', 'count']
@@ -49,7 +41,6 @@ def model_data(model_type, path='Data', test_size=.1):
         case_static['label'] = 1
         case_static = race_recode(case_static)
 
-        # case_static['ethnicity'] = LabelEncoder().fit_transform(case_static['ethnicity'])
         case_static = pd.concat((case_static.drop(columns=['ethnicity']), pd.get_dummies(case_static['ethnicity'])), axis = 1)
         case_static['gender'] = LabelEncoder().fit_transform(case_static['gender'])
 
@@ -69,7 +60,6 @@ def model_data(model_type, path='Data', test_size=.1):
         control_static = control_static[['gender', 'ethnicity', 'admission_age', 'icustay_id']]
         control_static['label'] = 0
         control_static = race_recode(control_static)
-        # control_static['ethnicity'] = LabelEncoder().fit_transform(control_static['ethnicity'])
 
         control_static = pd.concat((control_static.drop(columns=['ethnicity']), pd.get_dummies(control_static['ethnicity'])), axis = 1)
         control_static['gender'] = LabelEncoder().fit_transform(control_static['gender'])

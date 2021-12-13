@@ -4,7 +4,6 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 from matplotlib import rc,rcParams
 
-
 def classification_metrics(classifierName, y_true, y_pred):
     if isinstance(y_true, list):
         y_true = np.array(y_true)
@@ -35,33 +34,33 @@ def classification_metrics(classifierName, y_true, y_pred):
     print("______________________________________________")
     print("")
 
-def plot_roc(figname, **kwargs):
-    # with plt.style.context('ggplot'):
-    plt.style.use('ggplot')
-    for classifierName, rocfile in kwargs.items():
-        roc = pd.read_csv(rocfile)
-        auc = metrics.auc(roc.fpr, roc.tpr)
-        plt.plot(roc.fpr, roc.tpr,label=f"{classifierName} AUC={auc:.3f}")
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.legend()
-    plt.plot()    
-    plt.savefig(figname)
-    plt.clf()
+def plot_roc(figname, style='ggplot', **kwargs):
+    with plt.style.context(style):
+        plt.figure(figsize=(5, 5))
+        for classifierName, rocfile in kwargs.items():
+            roc = pd.read_csv(rocfile)
+            auc = metrics.auc(roc.fpr, roc.tpr)
+            plt.plot(roc.fpr, roc.tpr,label=f"{classifierName} AUC={auc:.3f}")
+        plt.xlabel("False Positive Rate", fontsize=12)
+        plt.ylabel("True Positive Rate", fontsize=12)
+        plt.legend(fontsize=12)
+        plt.savefig(figname)
+        plt.show()
+        plt.close()
 
-def plot_prc(figname, **kwargs):
-    # with plt.style.context('ggplot'):
-    plt.style.use('ggplot')
-    for classifierName, prcfile in kwargs.items():
-        prc = pd.read_csv(prcfile)
-        auprc = metrics.auc(prc.recall, prc.precision)
-        plt.plot(prc.recall, prc.precision,label=f"{classifierName} AUPRC={auprc:.3f}")
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.legend()
-    plt.plot()
-    plt.savefig(figname)
-    plt.clf()
+def plot_prc(figname, style='ggplot', **kwargs):
+    with plt.style.context(style):
+        plt.figure(figsize=(5, 5))
+        for classifierName, prcfile in kwargs.items():
+            prc = pd.read_csv(prcfile)
+            auprc = metrics.auc(prc.recall, prc.precision)
+            plt.plot(prc.recall, prc.precision,label=f"{classifierName} AUPRC={auprc:.3f}")
+        plt.xlabel("Recall", fontsize=12)
+        plt.ylabel("Precision", fontsize=12)
+        plt.legend(fontsize=12)
+        plt.savefig(figname)
+        plt.show()
+        plt.close()
 
 def plot_roc_prc(figname, prcfile, rocfile, classifierName = 'LightGBM'):
     plt.style.use('default')
@@ -72,7 +71,7 @@ def plot_roc_prc(figname, prcfile, rocfile, classifierName = 'LightGBM'):
 
     f, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))
 
-    axes[0].plot(roc.fpr, roc.tpr,label=f"{classifierName} AUPRC={auroc:.3f}", color='red')
+    axes[0].plot(roc.fpr, roc.tpr,label=f"{classifierName} AUC={auroc:.3f}", color='red')
     axes[0].set_xlabel("False Positive Rate", fontweight='bold', fontsize=18)
     axes[0].set_ylabel("True Positive Rate", fontweight='bold', fontsize=18)
     axes[0].legend(fontsize=18)
