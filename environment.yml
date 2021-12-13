@@ -4,18 +4,20 @@ channels:
   - defaults
 dependencies:
   - python=3.6
-  - pytorch
+  - pytorch=1.10.0
   - torchvision
   - cudatoolkit=10.2
-  - imblearn
   - jupyter
-  - scikit-learn
-  - scipy
-  - numpy
-  - pandas
-  - matplotlib
+  - scikit-learn=0.24.2
+  - scipy=1.5.2
+  - numpy=1.19.2
+  - pandas=1.1.5
+  - matplotlib=3.3.4 
   - pyarrow
   - pip
   - pip:
     - google-cloud-bigquery[bqstorage,pandas]
     - SciencePlots
+    - lightgbm=3.3.1
+    - tableone=0.7.10
+    - hyperopt=0.2.7
