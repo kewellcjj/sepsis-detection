@@ -5,7 +5,7 @@ Extract 48 hours of vital time series of control group icustays before control_o
 ---------------------------------------------------------------------------------------------------------------------
 */
 
-create or replace table `bdhfa2021.project.control_48h_hourly_vitals` as
+create or replace table `sepsis3.control_48h_hourly_vitals` as
 SELECT  pvt.icustay_id, pvt.subject_id -- removed , pvt.hadm_id,
 ,   pvt.chart_time 
 -- , case 
@@ -81,10 +81,10 @@ FROM  (
   , ch.control_onset_time
   , s3c.intime
 
-  from `bdhfa2021.project.matched_controls_hourly` ch -- was icustays ie (changed it below as well)
+  from `sepsis3.matched_controls_hourly` ch -- was icustays ie (changed it below as well)
   left join `physionet-data.mimiciii_clinical.icustays` ie
     on ch.icustay_id = ie.icustay_id
-  left join `bdhfa2021.project.sepsis3_cohort` s3c
+  left join `sepsis3.sepsis3_cohort` s3c
     on ch.icustay_id = s3c.icustay_id
   left join `physionet-data.mimiciii_clinical.chartevents` ce
     on ch.icustay_id = ce.icustay_id -- removed: ie.subject_id = ce.subject_id and ie.hadm_id = ce.hadm_id and 

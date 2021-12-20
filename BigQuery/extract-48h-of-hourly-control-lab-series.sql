@@ -8,7 +8,7 @@ Extract 48 hours of lab time series of control group icustays before control_ons
 
 -- This query pivots lab values 
 
-CREATE OR REPLACE TABLE `bdhfa2021.project.control_48h_hourly_labs` AS
+CREATE OR REPLACE TABLE `sepsis3.control_48h_hourly_labs` AS
 SELECT
   pvt.icustay_id
   , pvt.subject_id 
@@ -187,7 +187,7 @@ FROM
     ELSE le.valuenum
     END AS valuenum
 
-  from `bdhfa2021.project.matched_controls_hourly` ch -- was icustays ie (changed it below as well)
+  from `sepsis3.matched_controls_hourly` ch -- was icustays ie (changed it below as well)
       left join `physionet-data.mimiciii_clinical.icustays` ie
       on ch.icustay_id = ie.icustay_id
     LEFT JOIN `physionet-data.mimiciii_clinical.labevents` le
