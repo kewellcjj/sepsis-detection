@@ -1,3 +1,4 @@
+create or replace table `sepsis3.icustay_static` as
 SELECT ie.subject_id, ie.hadm_id, ie.icustay_id
 
 -- patient level factors

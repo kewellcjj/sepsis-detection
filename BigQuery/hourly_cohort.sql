@@ -4,7 +4,7 @@
 --  2. sofa score >=2 for the first time during a time window around the suspected_infection_time
 
 -- create data with icustay with sofa >= 2
-create or replace table `cdcproject.BDFH.sofa_delta` as
+create or replace table `sepsis3.sofa_delta` as
 -- get sofa scores for the 72 time window around suspected_infection_time
 with step1 as 
 (
@@ -44,7 +44,7 @@ select
 select * from step4 where row_id=1;
 
 -- create data for sepsis cases
-create or replace table `cdcproject.BDFH.cases` as
+create or replace table `sepsis3.cases` as
 select sd.icustay_id
 , s3c.intime
     , s3c.outtime
@@ -56,8 +56,8 @@ select sd.icustay_id
     , datetime_diff(sd.sepsis_onset, s3c.intime, second)
           / 60.0 / 60.0 as sepsis_onset_hour
     , icu.SUBJECT_ID
-from `cdcproject.BDFH.sofa_delta` sd
-inner join `cdcproject.BDFH.Cohort` s3c
+from `sepsis3.sofa_delta` sd
+inner join `sepsis3.sepsis3_cohort` s3c
 on sd.icustay_id = s3c.icustay_id
 inner join `physionet-data.mimiciii_clinical.admissions` adm
 on s3c.hadm_id = adm.hadm_id 
@@ -75,17 +75,17 @@ where not (
                 );
 
 -- create data for control
-create or replace table `cdcproject.BDFH.controls` as
+create or replace table `sepsis3.controls` as
 select s3c.icustay_id
     , s3c.hadm_id
     , s3c.intime
     , s3c.outtime
     , datetime_diff(s3c.outtime, s3c.intime, second)
           / 60.0 / 60.0 as length_of_stay
-    , sd.sepsis_onset
+    -- , sd.sepsis_onset
     , icu.SUBJECT_ID
-    from `cdcproject.BDFH.Cohort` s3c
-    left join `cdcproject.BDFH.sofa_delta` sd 
+    from `sepsis3.sepsis3_cohort` s3c
+    left join `sepsis3.sofa_delta` sd 
     on s3c.icustay_id = sd.icustay_id
     inner join `physionet-data.mimiciii_clinical.admissions` adm
     on s3c.hadm_id = adm.hadm_id 

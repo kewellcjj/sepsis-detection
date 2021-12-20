@@ -1,3 +1,4 @@
+CREATE OR REPLACE TABLE `sepsis3.sepsis3_cohort` AS
 with serv as
 (
     select hadm_id, curr_service
