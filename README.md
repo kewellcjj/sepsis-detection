@@ -1,10 +1,14 @@
 # sepsis-detection
 
-This repository is initially developed for a group project from a Gatech OMSCS class. The version delivered during the class is tagged as v0.1.   
+This repository is initially developed for a group project from a Gatech OMSCS class. The version delivered during the class is tagged as v0.1. 
+
+The implementation pipeline is summarized in the following figure.
+
+![](images/flowchart.png)
 
 ## Data
 
-In order to access MIMIC-III database on Google Clould, please follow the instructions in https://physionet.org/content/mimiciii/1.4/.
+In order to access MIMIC-III database on Google Cloud, please follow the instructions in https://physionet.org/content/mimiciii/1.4/.
 
 Run sql and python code in following orders to recreate the csv files used in modeling.
 
@@ -20,7 +24,7 @@ extract-48h-of-hourly-control-vital-series.sql
 data_prep_step1.py
 ```
 
-All sql codes can be run on GCP BigQuery console by changing project and data names to your own location accordingly. Althernatively, one can run the first three queries with `get_cohort.sh` on clould shell with project id as the lone argument. Similarly, the other four sequence queries can be run with `extract_sequence.sh`.
+All sql codes can be run on GCP BigQuery console by changing project and data names to your own location accordingly. Alternatively, one can run the first three queries with `get_cohort.sh` on cloud shell with project id as the lone argument. Similarly, the other four sequence queries can be run with `extract_sequence.sh`.
 
 The two python files can be run as follows assuming you are in the top level folder
 ```
@@ -38,10 +42,18 @@ Note: while we tried to set the random seed whenever possible for reproducibilit
 
 ## Models
 
+Final model data processing is done in `Python/model_data.py`.
+
 * Logistic regression: trained and evaluated in LR.ipynb
 * SVM: trained and evaluated in SVM_Model.ipynb
 * LightGBM: trained and evaluated in Lightgbm_Model.ipynb
 * RNN: trained using `python Python/rnn_main.py`, evaluated in RNN_evaluation.ipynb
+
+## Results
+<div align='center'>
+<img src='images/auc_compare.png' height='280px'>
+<img src='images/auprc_compare.png', height='280px'>
+</div>
 
 ## Resource
 
